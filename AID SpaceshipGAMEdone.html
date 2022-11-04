@@ -1,0 +1,646 @@
+<html>
+
+      <canvas id="mycanvas" width="1000" height="600" style=" border: 3px #fc0e0e"></canvas>
+    
+  <script>
+
+    var g_Canvas = document.getElementById("mycanvas");
+    var g_Ctx = g_Canvas.getContext("2d");
+      
+    var g_FrameRate = 30;
+    var g_TimeInterval = 1000/g_FrameRate;
+      
+    var g_MoveRightFlag = 0;
+    var g_MoveLeftFlag = 0;
+    var g_MoveUpFlag = 0;
+    var g_MoveDownFlag = 0;
+      
+    var g_IsMainMenuActive = 1;
+    var g_IsSettingMenuActive = 0;
+    var g_IsGameplayActive = 0;
+    var g_IsAstroidCollideShip = 0;
+    var g_RestartTrue = 0
+    
+    var g_SpaceShipImage = new Image()
+    g_SpaceShipImage.src = "spaceship.PNG"; 
+      
+    var g_CanvasImage = new Image()
+    g_CanvasImage.src = "space.jpeg";
+      
+    var g_Astroid1 = new Image()
+    g_Astroid1.src = "Astroid.1.PNG";
+      
+    var g_Astroid2 = new Image()
+    g_Astroid2.src = "Astroid.2.PNG";
+      
+    var g_Astroid3 = new Image()
+    g_Astroid3.src = "Astroid.3.PNG";
+      
+    var g_Astroid4 = new Image()
+    g_Astroid4.src = "Astroid.4.PNG";
+      
+    var g_Astroid5 = new Image()
+    g_Astroid5.src = "Astroid.5.PNG";
+      
+    var g_Astroid6 = new Image()
+    g_Astroid6.src = "Astroid.6.PNG";
+      
+    var g_Astroid7 = new Image()
+    g_Astroid7.src = "Astroid.7.PNG";
+      
+    var g_Astroid8 = new Image()
+    g_Astroid8.src = "Astroid.8.PNG";
+      
+    var g_Astroid9 = new Image()
+    g_Astroid9.src = "Astroid.9.PNG";
+      
+    var g_Astroid10 = new Image()
+    g_Astroid10.src = "Astroid.10.PNG";  
+    
+      class C_SpaceShip
+      {
+          constructor(SquareSize,SquareXpos,SquareYpos)
+          {
+             
+              this.squaresize = SquareSize;
+              this.squarexpos = SquareXpos;
+              this.squareypos = SquareYpos;
+              this.rotateAngle = 0
+              this.squarexcenter = this.squarexpos + this.squaresize/2;
+              this.squareycenter = this.squareypos + this.squaresize/2;
+              this.squarespeedx = 8
+              this.squarespeedy = 8
+             
+          }
+          
+          m_RotateDrawRect()
+         { 
+             g_Ctx.save();
+             g_Ctx.translate(this.squarexcenter,this.squareycenter);
+             g_Ctx.rotate(Math.PI/180 * this.rotateAngle);
+             g_Ctx.drawImage(g_SpaceShipImage,-this.squaresize/2,-this.squaresize/2,this.squaresize,this.squaresize); 
+             g_Ctx.restore();
+         }
+          
+          m_RotateFlag()
+          {
+              if(g_MoveRightFlag == 1)
+                  {
+                      this.rotateAngle += 5;
+                  }
+        
+              if(g_MoveLeftFlag == 1)
+                  {
+                      this.rotateAngle += -5;
+                  }
+          }
+          
+          
+         m_MoveFlag()
+          {
+              if(g_MoveUpFlag == 1)
+                  {
+                    var l_Movedxpos1 = this.squarespeedx * Math.cos(this.rotateAngle*Math.PI/180)
+                    var l_Movedypos1 = this.squarespeedy * Math.sin(this.rotateAngle*Math.PI/180)
+                    
+                    this.squarexcenter += l_Movedxpos1
+                    this.squareycenter += l_Movedypos1
+                      
+                  }
+    
+              if(g_MoveDownFlag == 1)
+                  {
+                    var l_Movedxpos2 = this.squarespeedx * Math.cos(this.rotateAngle*Math.PI/180)
+                    var l_Movedypos2 = this.squarespeedy * Math.sin(this.rotateAngle*Math.PI/180)
+                    
+                    this.squarexcenter -= l_Movedxpos2
+                    this.squareycenter -= l_Movedypos2
+                      
+                  }
+          }
+          
+        m_BoundaryCollisionCheck()
+          {
+              
+         if(this.squarexcenter+this.squaresize/2 >= g_Canvas.width)
+             {
+               this.squarexcenter -= this.squarespeedx  ;
+             }
+              
+              
+         if(this.squarexcenter - this.squaresize/2 <= 0)
+            {
+               this.squarexcenter += this.squarespeedx ;
+            }
+              
+        
+         if(this.squareycenter +this.squaresize/2 >= g_Canvas.height)
+             {
+                this.squareycenter -= this.squarespeedy ;
+             }
+              
+              
+         if(this.squareycenter - this.squaresize/2 <= 0)
+            {
+                this.squareycenter += this.squarespeedy ;
+            }
+          }
+          
+      }
+      
+      
+             class C_Astroid
+      {
+          constructor(AstroidSize,AstroidXpos,AstroidYpos,AstroidSpeedX,AstroidSpeedY,GetImage)
+          {
+              
+              this.astroidsize = AstroidSize;
+              this.astroidxpos = AstroidXpos;
+              this.astroidypos = AstroidYpos;
+              this.astroidspeedx = AstroidSpeedX;
+              this.astroidspeedy = AstroidSpeedY;
+              this.getImage = GetImage;
+              this.astroidxcenter = AstroidXpos + (AstroidSize/2);
+              this.astroidycenter = AstroidYpos + (AstroidSize/2);
+              
+          }
+          
+          m_ADrawRect()
+         { 
+          
+    g_Ctx.drawImage(this.getImage,this.astroidxpos,this.astroidypos,this.astroidsize,this.astroidsize);
+        
+             
+         }
+          m_AMoveRect()
+          {
+              this.astroidxpos += this.astroidspeedx
+              this.astroidypos += this.astroidspeedy
+              
+              this.astroidxcenter = this.astroidxpos + this.astroidsize/2
+              this.astroidycenter = this.astroidypos + this.astroidsize/2
+          }
+          
+          m_ACheakBoundaryCollision()
+          {
+              
+         if(this.astroidxpos+this.astroidsize >g_Canvas.width + 100)
+             {
+                 this.astroidxpos = -100
+                 this.astroidypos = Math.round(Math.random()*(500-30)+30)
+                
+             }
+         if(this.astroidxpos < -100)
+             {
+                 this.astroidxpos = 1060
+                 this.astroidypos = Math.round(Math.random()*(500-30)+30)
+                
+             }
+         if(this.astroidypos+this.astroidsize >g_Canvas.height + 100 )
+             {
+                 this.astroidypos = -100
+                 this.astroidxpos = Math.round(Math.random()*(900-50)+50)
+               
+             }
+        if(this.astroidypos < -100 )
+             {
+                 this.astroidypos = 600
+                 this.astroidxpos = Math.round(Math.random()*(900-50)+50)
+              
+             }
+        
+          }
+          
+          
+      }
+      
+      function f_FindDistance(x1,x2,y1,y2)
+       {
+         var l_Distance = Math.sqrt(Math.pow(x2 - x1,2)+Math.pow(y2 - y1,2))
+         return l_Distance
+       }
+       
+      
+    var g_DistanceBetweenAstroidandShip = 0
+      
+    
+    function f_ShipAstroidCollision()
+          {
+                  
+ g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_1.astroidxcenter,SpaceShip_1.squareycenter,Astroid_1.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_1.astroidsize/2))
+ 
+     {  
+         g_IsAstroidCollideShip = 1 
+     }
+              
+   g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_2.astroidxcenter,SpaceShip_1.squareycenter,Astroid_2.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_2.astroidsize/2))
+ 
+     {  
+         g_IsAstroidCollideShip = 1
+           
+     }
+              
+  g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_3.astroidxcenter,SpaceShip_1.squareycenter,Astroid_3.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_3.astroidsize/2))
+ 
+     {  
+            g_IsAstroidCollideShip = 1;
+     }
+              
+    g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_4.astroidxcenter,SpaceShip_1.squareycenter,Astroid_4.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_4.astroidsize/2))
+ 
+     {  
+            g_IsAstroidCollideShip = 1;
+     }
+              
+     g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_5.astroidxcenter,SpaceShip_1.squareycenter,Astroid_5.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_5.astroidsize/2))
+ 
+     {   
+            g_IsAstroidCollideShip = 1;
+     }
+              
+      g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_6.astroidxcenter,SpaceShip_1.squareycenter,Astroid_6.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_6.astroidsize/2))
+ 
+     {  
+            g_IsAstroidCollideShip = 1;
+     }
+              
+              
+      g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_7.astroidxcenter,SpaceShip_1.squareycenter,Astroid_7.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_7.astroidsize/2))
+ 
+     { 
+            g_IsAstroidCollideShip = 1;
+     }  
+              
+              
+      g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_8.astroidxcenter,SpaceShip_1.squareycenter,Astroid_8.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_8.astroidsize/2))
+ 
+     { 
+            g_IsAstroidCollideShip = 1;
+     }         
+              
+      g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_9.astroidxcenter,SpaceShip_1.squareycenter,Astroid_9.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_9.astroidsize/2))
+ 
+     {    
+            g_IsAstroidCollideShip = 1;
+     }         
+       
+       g_DistanceBetweenAstroidandShip = f_FindDistance(SpaceShip_1.squarexcenter,Astroid_10.astroidxcenter,SpaceShip_1.squareycenter,Astroid_10.astroidycenter)
+  
+ if(g_DistanceBetweenAstroidandShip <= (SpaceShip_1.squaresize/2 + Astroid_10.astroidsize/2))
+ 
+     {   
+            g_IsAstroidCollideShip = 1;
+     }            
+          }
+      
+      function f_IfShipcollideAstroid()
+        {
+          if(g_IsAstroidCollideShip == 1 )
+              { 
+                  g_Ctx.font = "100px Verdana";
+                  g_Ctx.fillStyle = "red"
+                  g_Ctx.fillText("GAMEOVER",240,100);
+                   
+                  g_IsAstroidCollideShip = 0
+                  g_IsGameplayActive = 0
+                  g_IsMainMenuActive = 1
+                  g_IsSettingMenuActive = 0
+              }
+        }
+
+  function f_DrawMainMenu()
+    {
+        if(g_IsMainMenuActive == 1)
+            {
+                 
+    g_Ctx.font = "50px Georgia"
+    g_Ctx.fillStyle = "orange"
+    g_Ctx.fillText("*ASTROS*",350,200)
+    
+    
+    g_Ctx.font = "30px Georgia";
+    
+    g_Ctx.fillStyle = "black";
+    g_Ctx.fillRect(450,280,100,22);
+    g_Ctx.fillStyle = "yellow";
+    g_Ctx.fillText("START",450,300)
+    
+    
+    g_Ctx.fillStyle = "black";
+    g_Ctx.fillRect(450,330,150,22);
+    g_Ctx.fillStyle = "yellow";
+    g_Ctx.fillText("CONTROLS",450,350);
+            }
+    }
+    
+     
+      function f_MouseClick(event)
+        {
+            console.log(event.clientX+"__"+event.clientY);
+          if(g_IsMainMenuActive == 1)
+             {
+                if(event.clientX > 450 && event.clientX < 620 && event.clientY > 330 && event.clientY < 352)
+                {
+                    g_IsMainMenuActive = 0;
+                    g_IsSettingMenuActive = 1;
+                }
+                 if(event.clientX > 450 && event.clientX < 550 && event.clientY > 280 && event.clientY < 303)
+                     {
+                         g_IsGameplayActive = 1
+                         g_IsMainMenuActive = 0;
+                         g_IsSettingMenuActive = 0;
+                         f_RestartGame();
+                         g_RestartTrue = 1
+                     }
+                 if(event.clientX > 28  && event.clientX < 110 && event.clientY > 25 && event.clientY < 62)
+                    {
+                        g_IsGameplayActive = 1
+                        g_IsMainMenuActive = 0
+                        g_IsSettingMenuActive = 0
+                    }
+                
+             }
+            
+        else if(g_IsGameplayActive == 1)
+            {
+                if(event.clientX > 28  && event.clientX < 110 && event.clientY > 25 && event.clientY < 62)
+                    {
+                        g_IsGameplayActive = 0
+                        g_IsMainMenuActive = 1
+                        g_IsSettingMenuActive = 0
+                    }
+            }
+            
+            
+  
+            
+         else if(g_IsSettingMenuActive == 1)
+             {
+            if(event.clientX > 455 && event.clientX < 584 && event.clientY > 325 && event.clientY < 352)
+                {
+                    g_IsMainMenuActive = 1;
+                    g_IsSettingMenuActive = 0;
+                }
+             }
+        }
+    
+    function f_DrawSettingMenu()
+    {
+        if(g_IsSettingMenuActive == 1)
+            {
+                  
+    
+  
+    g_Ctx.font = "40px Georgia"
+    g_Ctx.fillStyle = "RED"
+    g_Ctx.fillText("CONTROLS :",340,100)
+    
+    g_Ctx.font = "30px Georgia"
+    g_Ctx.fillStyle = "yellow";
+    g_Ctx.fillText("SOUND",450,300)
+    
+
+    g_Ctx.fillStyle = "yellow";
+    g_Ctx.fillText("MENU",450,350);
+            }
+  }         
+      
+      function f_HomeButton()
+      {
+          if(g_IsGameplayActive == 1)
+              {
+             g_Ctx.font = "30px Georgia";
+             g_Ctx.fillStyle = "yellow";
+             g_Ctx.fillText("home",30,50)
+              }
+      }
+      
+      function f_ResumeButton()
+      {
+          if( g_IsMainMenuActive == 1)
+              {
+                  g_Ctx.font = "30px Georgia";
+                  g_Ctx.fillStyle = "yellow";
+                  g_Ctx.fillText("resume",30,50)
+              }
+      }
+            
+            function f_RestartGame()
+            {
+
+           SpaceShip_1.squarexcenter = 500
+           SpaceShip_1.squareycenter = 300
+          
+           Astroid_1.astroidxpos = 950
+           Astroid_1.astroidypos = 250
+          
+           Astroid_2.astroidxpos = 950
+           Astroid_2.astroidypos = 190   
+                
+           Astroid_3.astroidxpos = 250
+           Astroid_3.astroidypos = 600
+          
+           Astroid_4.astroidxpos = -50
+           Astroid_4.astroidypos = 250
+          
+           Astroid_5.astroidxpos = 300
+           Astroid_5.astroidypos = -60
+          
+           Astroid_6.astroidxpos = 700
+           Astroid_6.astroidypos = -60
+          
+           Astroid_7.astroidxpos = 800
+           Astroid_7.astroidypos = 600
+          
+           Astroid_8.astroidxpos = 1050
+           Astroid_8.astroidypos = 200
+          
+           Astroid_9.astroidxpos = 500
+           Astroid_9.astroidypos = 600
+          
+           Astroid_10.astroidxpos = 1050
+           Astroid_10.astroidypos = 300
+           
+            }
+              
+        
+          
+     
+              
+              function f_ClearCanvas()
+      {
+          g_Ctx.clearRect(0,0,g_Canvas.width,g_Canvas.height)
+          g_Ctx.drawImage(g_CanvasImage,0,0,g_Canvas.width,g_Canvas.height)
+      }
+      
+    
+              
+              
+               //     SquareSize,SquareXpos,SquareYpos
+                  var SpaceShip_1 = new C_SpaceShip(80,500,300);
+      
+      
+   //   SquareSize,SquareXpos,SquareYpos,SquareSpeedX,SquareSpeedY,GetImage
+                  var Astroid_1 = new C_Astroid(80,950,250,2,-6,g_Astroid1)
+                  var Astroid_2 = new C_Astroid(80,950,190,5,-5,g_Astroid2)
+                  var Astroid_3 = new C_Astroid(110,250,600,3,5,g_Astroid3)
+                  var Astroid_4 = new C_Astroid(50,-50,250,5,-4,g_Astroid4)
+                  var Astroid_5 = new C_Astroid(70,300,-60,7,5,g_Astroid5)
+                  var Astroid_6 = new C_Astroid(60,700,-60,-6,5,g_Astroid6)
+                  var Astroid_7 = new C_Astroid(40,800,600,3,-7,g_Astroid7)
+                  var Astroid_8 = new C_Astroid(80,1050,200,4,-6,g_Astroid8)
+                  var Astroid_9 = new C_Astroid(95,500,600,8,2,g_Astroid9)
+                  var Astroid_10 = new C_Astroid(90,1050,300,6,0,g_Astroid10)
+                  
+                  var g_Scorecounter = 0
+                   
+        
+        function f_GameLoop()
+          {
+              if(g_IsGameplayActive == 1)
+                 {
+                     if(g_RestartTrue == 0)
+                         {
+                            g_Scorecounter += 1
+                         }
+                     
+                     if(g_RestartTrue == 1)
+                         {
+                            g_Scorecounter = 0
+                             g_RestartTrue = 0
+                         }
+                     
+                  SpaceShip_1.m_RotateFlag();
+                  SpaceShip_1.m_MoveFlag();
+          
+                  Astroid_1.m_AMoveRect();
+                  Astroid_2.m_AMoveRect();
+                  Astroid_3.m_AMoveRect();
+                  Astroid_4.m_AMoveRect();
+                  Astroid_5.m_AMoveRect();
+                  Astroid_6.m_AMoveRect();
+                  Astroid_7.m_AMoveRect();
+                  Astroid_8.m_AMoveRect();
+                  Astroid_9.m_AMoveRect();
+                  Astroid_10.m_AMoveRect();
+                     
+                 }
+
+                  f_ClearCanvas();
+                  f_ShipAstroidCollision();
+              
+              if(g_IsGameplayActive == 1)
+                  {
+                      
+                  SpaceShip_1.m_BoundaryCollisionCheck();
+                  Astroid_1.m_ACheakBoundaryCollision();
+                  Astroid_2.m_ACheakBoundaryCollision();
+                  Astroid_3.m_ACheakBoundaryCollision();
+                  Astroid_4.m_ACheakBoundaryCollision();
+                  Astroid_5.m_ACheakBoundaryCollision();
+                  Astroid_6.m_ACheakBoundaryCollision();
+                  Astroid_7.m_ACheakBoundaryCollision();
+                  Astroid_8.m_ACheakBoundaryCollision();
+                  Astroid_9.m_ACheakBoundaryCollision();
+                  Astroid_10.m_ACheakBoundaryCollision();
+          
+                  SpaceShip_1.m_RotateDrawRect(); 
+                  Astroid_1.m_ADrawRect();
+                  Astroid_2.m_ADrawRect();
+                  Astroid_3.m_ADrawRect();
+                  Astroid_4.m_ADrawRect();
+                  Astroid_5.m_ADrawRect();
+                  Astroid_6.m_ADrawRect();
+                  Astroid_7.m_ADrawRect();
+                  Astroid_8.m_ADrawRect();
+                  Astroid_9.m_ADrawRect();
+                  Astroid_10.m_ADrawRect();
+                   g_Ctx.fillText("SCORE :" +g_Scorecounter,750,30,100) 
+    
+                  }
+              
+              
+                  f_DrawMainMenu();
+                  f_DrawSettingMenu();
+                  f_HomeButton();
+                  f_IfShipcollideAstroid();
+                  f_ResumeButton();
+          }
+              
+              
+              
+function f_KeydownEventHandler(l_eventData)
+    {
+        if(l_eventData.keyCode == 39 || l_eventData.keyCode == 68 )
+            {
+                g_MoveRightFlag = 1;
+            }
+        if(l_eventData.keyCode == 37 || l_eventData.keyCode == 65)
+            {
+                g_MoveLeftFlag = 1;
+            }
+        if(l_eventData.keyCode == 38 || l_eventData.keyCode == 87)
+            {
+                g_MoveUpFlag = 1;
+            }
+        if(l_eventData.keyCode == 40 || l_eventData.keyCode == 83)
+            {
+                g_MoveDownFlag = 1;
+            }
+      
+    }
+              
+              
+function f_KeyUPEventHandler(l_eventData)
+    {
+     
+        if(l_eventData.keyCode == 39 || l_eventData.keyCode == 68)
+            {
+                g_MoveRightFlag = 0;
+            }
+        if(l_eventData.keyCode == 37 || l_eventData.keyCode == 65 )
+            {
+                g_MoveLeftFlag = 0;
+            }
+        if(l_eventData.keyCode == 38 || l_eventData.keyCode == 87)
+            {
+                g_MoveUpFlag = 0;
+            }
+        if(l_eventData.keyCode == 40 || l_eventData.keyCode == 83)
+            {
+                g_MoveDownFlag = 0;
+            }
+    
+        
+    }
+      
+     
+   var id = setInterval(f_GameLoop,g_TimeInterval)
+   
+    document.addEventListener("keydown",f_KeydownEventHandler);
+    document.addEventListener("keyup",f_KeyUPEventHandler); 
+    document.addEventListener("click",f_MouseClick);
+    
+   
+   
+    </script>
+
+</html>
